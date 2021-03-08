@@ -1,0 +1,104 @@
+--Selecting user and role with username
+select * from
+(select registered_users.id , registered_users.name, registered_users.passwd, 
+registered_users.rle as role_id, user_role."name" as role_name from registered_users 
+join user_role on rle = user_role.id) as userrole
+where userrole.name = 'crystal';
+
+--selecting user and payments with user_id
+select * from
+(select payments.id, total, paid, payments_log.user_id, bike_id from payments join payments_log
+on payments.id = payments_log.id) as userpayments
+where userpayments.user_id = 1;
+
+--selecting bikes and payments with userid
+select * from
+(select userpayments.id, total, paid, user_id, bike_id, model, brand, color, status_id from
+	(select payments.id, total, paid, payments_log.user_id, bike_id from payments join payments_log
+	on payments.id = payments_log.id) as userpayments
+	join bikes on userpayments.bike_id = bikes.id) as bike_payments
+where bike_payments.user_id = 1;
+
+--selecting userid, name with offers
+select * from
+(select offer_id, bid, user_id, name from
+(select offers_log.id as offer_id, user_id, registered_users.name from
+offers_log join registered_users on user_id = registered_users.id) as offer_log_user
+join offers on offer_id = offers.id) as user_offers
+where user_id = 1;
+
+select * from
+(select bike_payments.id, total, paid, user_id, bike_id, model, brand, color, status_id,
+
+--selecting available bikes and status 
+select * from
+(select bikes.id, model, brand, color, status_id, Status."name" from bikes join Status on
+status_id = Status.id) as bikes_status where bikes_status.name = 'Available';
+
+--joining offers, offer_log, bikes, and status
+--getting available bikes with their offers 
+select * from
+(select bike_offers.id, model, brand, color, status_id, bike_offers."name" as status_name, 
+bike_offers.offer_id as offer_id, user_id, bid from 
+(select bikes_status.id, model, brand, color, status_id, bikes_status."name", offers_log.id
+as offer_id, offers_log.user_id from
+(select bikes.id, model, brand, color, status_id, Status."name" from bikes join Status on
+status_id = Status.id) as bikes_status join offers_log on bikes_status.id = offers_log.bike_id) as bike_offers
+join offers on offer_id = offers.id) as bike_offers;
+
+--combine users, payments_log, payments, and bikes to see a user's
+--list of bikes and payments
+select * from
+(select user_id, name, bike_id, model, brand, color, pay_id, total, paid from
+(select user_id, name, pay_id, bike_id, model, brand, color from 
+(select registered_users.id as user_id, name, payments_log.id as pay_id, bike_id from
+registered_users join payments_log on registered_users.id = payments_log.user_id)
+ as user_payment_log join bikes on bike_id = bikes.id) as user_bikes_pay_log
+join payments on pay_id = payments.id) as users_bikes_payments
+where user_id = 1;
+
+--see user's list of bikes and payments with full bike object (status)
+select * from
+(select user_id, users_bikes_payments.name, bike_id, model, brand, color, status_id, status.name as status_name,
+pay_id, total, paid from
+(select user_id, name, bike_id, model, brand, color, status_id, pay_id, total, paid from
+(select user_id, name, pay_id, bike_id, model, brand, color, status_id from 
+(select registered_users.id as user_id, name, payments_log.id as pay_id, bike_id from
+registered_users join payments_log on registered_users.id = payments_log.user_id)
+ as user_payment_log join bikes on bike_id = bikes.id) as user_bikes_pay_log
+join payments on pay_id = payments.id) as users_bikes_payments
+join status on status_id = status.id) user_fullbikes_payments
+where user_id = 1;
+
+--grab bikes and their offers
+select * from
+(select bike_id, model, brand, color, offer_id, bid from 
+(select bikes.id as bike_id, model, brand, color, offers_log.id as offer_id from bikes join
+offers_log on bikes.id = bike_id) as bike_offer_log
+join offers on offer_id = offers.id) as bike_offers
+where bike_id = 4;
+
+--grab full bike object (bike, status, offer)
+select * from
+(select bike_id, model, brand, color, status_id, status."name" as status_name, offer_id, bid from
+(select bike_id, model, brand, color, status_id, offer_id, bid from 
+(select bikes.id as bike_id, model, brand, color, status_id, offers_log.id as offer_id from bikes join
+offers_log on bikes.id = bike_id) as bike_offer_log
+join offers on offer_id = offers.id) as bike_offers
+join status on status_id = status.id) as full_bike
+where bike_id = 4;
+
+--selecting a full payment object (pay with bike object and its status)
+select * from
+(select pay_id, total, paid, bike_id, model, brand, color, status_id, status."name" as status_name from
+(select pay_id, total, paid, bike_id, model, brand, color, status_id from
+(select payments.id as pay_id, total, paid, bike_id from payments join payments_log
+on payments.id = payments_log.id) as pay
+join bikes on bike_id = bikes.id) as pay_bike
+join status on status_id = status.id) as fullpayments;
+
+--returning user_id from offers and offers_log
+select * from
+(select offers.id as offer_id, bid, user_id, bike_id from offers join
+offers_log on offers.id = offers_log.id) as offer_ids
+where offer_id = 1;
